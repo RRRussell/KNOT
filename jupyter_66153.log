@@ -1,0 +1,17 @@
+/var/spool/slurmd.spool/job66153/slurm_script: line 13: module: command not found
+Hostname: galaxy.ics.uci.edu
+PORT: 8888
+[I 12:26:29.386 LabApp] JupyterLab extension loaded from /pkg/anaconda3/2020.11/lib/python3.8/site-packages/jupyterlab
+[I 12:26:29.387 LabApp] JupyterLab application directory is /pkg/anaconda3/2020.11/share/jupyter/lab
+[I 12:26:29.394 LabApp] Serving notebooks from local directory: /home/zihend1/Genesis/KNOT
+[I 12:26:29.394 LabApp] Jupyter Notebook 6.1.4 is running at:
+[I 12:26:29.394 LabApp] http://galaxy.ics.uci.edu:8888/?token=8063b7d6b297041d2f24a0fdab5a527e7911bcc37a9ee16d
+[I 12:26:29.394 LabApp]  or http://127.0.0.1:8888/?token=8063b7d6b297041d2f24a0fdab5a527e7911bcc37a9ee16d
+[I 12:26:29.394 LabApp] Use Control-C to stop this server and shut down all kernels (twice to skip confirmation).
+[C 12:26:29.412 LabApp] 
+    
+    To access the notebook, open this file in a browser:
+        file:///home/zihend1/.local/share/jupyter/runtime/nbserver-2819529-open.html
+    Or copy and paste one of these URLs:
+        http://galaxy.ics.uci.edu:8888/?token=8063b7d6b297041d2f24a0fdab5a527e7911bcc37a9ee16d
+     or http://127.0.0.1:8888/?token=8063b7d6b297041d2f24a0fdab5a527e7911bcc37a9ee16d
