@@ -15,3 +15,9 @@ PORT: 8888
     Or copy and paste one of these URLs:
         http://galaxy.ics.uci.edu:8888/?token=8063b7d6b297041d2f24a0fdab5a527e7911bcc37a9ee16d
      or http://127.0.0.1:8888/?token=8063b7d6b297041d2f24a0fdab5a527e7911bcc37a9ee16d
+[W 14:13:50.106 LabApp] Clearing invalid/expired login cookie username-localhost-8891
+[W 14:13:50.108 LabApp] Clearing invalid/expired login cookie username-localhost-8891
+[I 14:13:50.108 LabApp] 302 GET /lab/workspaces/auto-j/tree/home/leiy28/flow_matching/domain_detection.ipynb (127.0.0.1) 3.07ms
+[W 14:13:57.036 LabApp] 401 POST /login?next=%2Flab%2Fworkspaces%2Fauto-j%2Ftree%2Fhome%2Fleiy28%2Fflow_matching%2Fdomain_detection.ipynb (127.0.0.1) 1.59ms referer=http://localhost:8891/login?next=%2Flab%2Fworkspaces%2Fauto-j%2Ftree%2Fhome%2Fleiy28%2Fflow_matching%2Fdomain_detection.ipynb
+[W 14:15:34.001 LabApp] 401 POST /login?next=%2Flab%2Fworkspaces%2Fauto-j%2Ftree%2Fhome%2Fleiy28%2Fflow_matching%2Fdomain_detection.ipynb (127.0.0.1) 6.04ms referer=http://localhost:8891/login?next=%2Flab%2Fworkspaces%2Fauto-j%2Ftree%2Fhome%2Fleiy28%2Fflow_matching%2Fdomain_detection.ipynb
+slurmstepd: error: *** JOB 66153 ON galaxy CANCELLED AT 2025-06-29T12:26:43 DUE TO TIME LIMIT ***
