@@ -2,6 +2,8 @@
 
 A Graph Neural Network (GNN) framework that combines positive-unlabeled learning with heterogeneous graph networks for gene druggability prediction.
 
+<p align="center"> <img src="KNOT_Flowchart.png" alt="KNOT Framework Overview" width="800"/> </p>
+
 ## Installation
 
 ```bash
