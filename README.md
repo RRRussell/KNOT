@@ -24,33 +24,17 @@ The framework now uses separate files for features and labels:
 
 ```
 data/
-├── gene_features.tsv      # Gene features (503 features across 16 categories)
-├── gene_labels.tsv        # Task labels and annotations
-├── gene_feature_summary.tsv # Feature category breakdown
-└── edge/                  # Network edge files
-    ├── human.source              # RegNetwork regulatory edges
-    ├── trrust_rawdata.human.tsv  # TRRUST transcription factor edges
-    ├── coexpression_edges_99p.tsv # Co-expression edges
-    └── ppi_symbol_links.tsv      # STRING PPI edges
+├── gene_features.tsv                  # Gene features (503 features across 16 categories)
+├── gene_labels.tsv                    # Task labels and annotations
+├── gene_feature_summary.tsv           # Feature category breakdown
+└── edge/                              # Network edge files
+    ├── human.source                   # RegNetwork regulatory edges
+    ├── trrust_rawdata.human.tsv       # TRRUST transcription factor edges
+    ├── coexpression_edges_99p.tsv     # Co-expression edges
+    └── ppi_symbol_links.tsv           # STRING PPI edges
 ```
 
 ## Quick Start
-
-### Explore the Dataset
-
-```bash
-# Show all available data
-python explore_data.py --all
-
-# Show only tasks
-python explore_data.py --tasks
-
-# Show only features  
-python explore_data.py --features
-
-# Test loading a specific task
-python explore_data.py --test-task tier12_vs_others
-```
 
 ### Evaluation Mode (Train/Val/Test)
 
@@ -166,9 +150,6 @@ python main.py --task tclin_vs_others --edge-config functional --mode evaluation
 # Generate rankings for cancer targets
 python main.py --task cancer_druggability --mode inference --feature-config depmap_plus_pharos
 
-# Quick data exploration
-python explore_data.py --all
-python explore_data.py --test-task tier12_vs_others --feature-config depmap_only
 ```
 
 ## File Structure
@@ -181,7 +162,6 @@ KNOT_v0/
 ├── models.py            # GNN model architectures
 ├── trainer.py           # Training pipeline
 ├── utils.py             # Utility functions
-├── explore_data.py      # Data exploration utility
 ├── results/             # Output directory
 ├── checkpoints/         # Model checkpoints
 └── data/                # Dataset files
