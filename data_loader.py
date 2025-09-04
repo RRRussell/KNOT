@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Data loading and preprocessing for KNOT GNN druggability prediction
+Updated for new data structure
 """
 
 import numpy as np
@@ -22,32 +23,52 @@ class DrugabilityDataLoader:
     Handles graph construction and feature preprocessing
     """
     
-    def __init__(self, input_file=INPUT_FILE, edge_config='all'):
+    def __init__(self, features_file=FEATURES_FILE, labels_file=LABELS_FILE, 
+                 edge_config='all', feature_config='all_features'):
         """
         Initialize data loader
         
         Args:
-            input_file: Path to gene druggability dataset
+            features_file: Path to gene features dataset
+            labels_file: Path to gene labels dataset
             edge_config: Edge configuration name from EDGE_CONFIGS
+            feature_config: Feature configuration name from FEATURE_CONFIGS
         """
-        self.input_file = input_file
+        self.features_file = features_file
+        self.labels_file = labels_file
         self.edge_config = edge_config if edge_config in EDGE_CONFIGS else 'all'
-        self.df = None
+        self.feature_config = feature_config if feature_config in FEATURE_CONFIGS else 'all_features'
+        self.features_df = None
+        self.labels_df = None
+        self.merged_df = None
         self.edge_data = None
         self.scaler = None
         self.imputer = None
         
     def load_data(self):
-        """Load the main dataset"""
-        print(f"Loading data from: {self.input_file}")
-        self.df = pd.read_csv(self.input_file, sep='\t')
-        print(f"Loaded {len(self.df)} genes with {len(self.df.columns)} features")
+        """Load the features and labels datasets"""
+        print(f"Loading features from: {self.features_file}")
+        self.features_df = pd.read_csv(self.features_file, sep='\t')
+        print(f"Loaded features: {len(self.features_df)} genes with {len(self.features_df.columns)-1} features")
         
-        # Check DepMap features availability
-        available_depmap = [f for f in DEPMAP_FEATURES if f in self.df.columns]
-        print(f"Available DepMap features: {len(available_depmap)}/{len(DEPMAP_FEATURES)}")
+        print(f"Loading labels from: {self.labels_file}")
+        self.labels_df = pd.read_csv(self.labels_file, sep='\t')
+        print(f"Loaded labels: {len(self.labels_df)} genes with {len(self.labels_df.columns)-1} label columns")
         
-        return self.df
+        # Merge features and labels
+        self.merged_df = self.features_df.merge(self.labels_df, on='Gene_Symbol', how='inner')
+        print(f"Merged dataset: {len(self.merged_df)} genes")
+        
+        # Check feature availability
+        selected_features = FEATURE_CONFIGS[self.feature_config]
+        available_features = [f for f in selected_features if f in self.features_df.columns]
+        missing_features = [f for f in selected_features if f not in self.features_df.columns]
+        
+        print(f"Feature config '{self.feature_config}': {len(available_features)}/{len(selected_features)} available")
+        if missing_features:
+            print(f"Missing features ({len(missing_features)}): {missing_features[:10]}...")
+        
+        return self.merged_df
     
     def load_edges(self):
         """Load edge data based on configuration"""
@@ -111,7 +132,10 @@ class DrugabilityDataLoader:
             # Sample if too large
             if len(df) > 1000000:
                 df = df.sample(n=1000000, random_state=42)
-            return list(zip(df['Gene1'], df['Gene2']))
+            # Assuming columns are Gene1, Gene2
+            gene1_col = df.columns[0]
+            gene2_col = df.columns[1]
+            return list(zip(df[gene1_col], df[gene2_col]))
         except Exception as e:
             print(f"    Error loading Coexpression: {e}")
             return []
@@ -123,7 +147,10 @@ class DrugabilityDataLoader:
             # Filter by confidence score if available
             if 'combined_score' in df.columns:
                 df = df[df['combined_score'] > 700]
-            return list(zip(df['gene1'], df['gene2']))
+            # Assuming columns are gene1, gene2
+            gene1_col = df.columns[0]
+            gene2_col = df.columns[1]
+            return list(zip(df[gene1_col], df[gene2_col]))
         except Exception as e:
             print(f"    Error loading PPI: {e}")
             return []
@@ -160,7 +187,7 @@ class DrugabilityDataLoader:
         Returns:
             Dictionary containing prepared data and metadata
         """
-        if self.df is None:
+        if self.merged_df is None:
             self.load_data()
         if self.edge_data is None:
             self.load_edges()
@@ -170,25 +197,24 @@ class DrugabilityDataLoader:
         
         task_info = DRUGGABILITY_TASKS[task_name]
         label_col = task_info['label_col']
-        task_type = task_info['task_type']
         
         print(f"\nPreparing data for task: {task_name}")
         print(f"  Display Name: {task_info['display_name']}")
         print(f"  Label Column: {label_col}")
         print(f"  Mode: {mode}")
         
-        # Filter data based on task type
-        if task_type == 'binary_subset':
-            # Only use samples with valid labels for subset tasks
-            valid_mask = self.df[label_col].notna()
-            task_data = self.df[valid_mask].copy()
-        else:
-            task_data = self.df.copy()
+        # Check if label column exists
+        if label_col not in self.merged_df.columns:
+            raise ValueError(f"Label column '{label_col}' not found in dataset")
         
-        print(f"  Using {len(task_data)} samples")
+        # Filter data: only use samples with valid labels (not NaN/null)
+        valid_mask = self.merged_df[label_col].notna()
+        task_data = self.merged_df[valid_mask].copy()
+        
+        print(f"  Using {len(task_data)} samples (filtered from {len(self.merged_df)} total)")
         
         # Get labels
-        y = task_data[label_col].values
+        y = task_data[label_col].values.astype(int)
         
         # Check class distribution
         unique_classes, counts = np.unique(y, return_counts=True)
@@ -230,18 +256,22 @@ class DrugabilityDataLoader:
             'task_info': task_info,
             'mode': mode,
             'scaler': self.scaler,
-            'imputer': self.imputer
+            'imputer': self.imputer,
+            'feature_config': self.feature_config
         }
     
     def _get_feature_columns(self, df):
-        """Get feature columns (excluding task labels and metadata)"""
-        feature_cols = []
+        """Get feature columns based on feature configuration"""
+        selected_features = FEATURE_CONFIGS[self.feature_config]
+        feature_cols = [f for f in selected_features if f in df.columns]
         
-        for col in df.columns:
-            if col not in EXCLUDE_COLUMNS and df[col].dtype in ['int64', 'float64']:
-                feature_cols.append(col)
+        print(f"  Selected {len(feature_cols)} features from config '{self.feature_config}'")
         
-        print(f"  Selected {len(feature_cols)} features (including DepMap)")
+        # Print feature breakdown if using all features
+        if self.feature_config == 'all_features':
+            depmap_count = len([f for f in DEPMAP_FEATURES if f in feature_cols])
+            non_depmap_count = len(feature_cols) - depmap_count
+            print(f"    DepMap: {depmap_count}, Non-DepMap: {non_depmap_count}")
         
         return feature_cols
     
@@ -380,3 +410,29 @@ class DrugabilityDataLoader:
             hetero_data['gene', 'self_loop', 'gene'].edge_index = self_loops
         
         return hetero_data
+    
+    def get_feature_breakdown(self):
+        """Get breakdown of features by category"""
+        if self.features_df is None:
+            self.load_data()
+        
+        breakdown = {}
+        
+        # DepMap features
+        depmap_available = [f for f in DEPMAP_FEATURES if f in self.features_df.columns]
+        breakdown['DepMap'] = {
+            'available': len(depmap_available),
+            'total': len(DEPMAP_FEATURES),
+            'features': depmap_available
+        }
+        
+        # Non-DepMap features by category
+        for category, features in NON_DEPMAP_FEATURES.items():
+            available = [f for f in features if f in self.features_df.columns]
+            breakdown[category] = {
+                'available': len(available),
+                'total': len(features),
+                'features': available
+            }
+        
+        return breakdown

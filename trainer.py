@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 Training pipeline for GNN druggability prediction
+Updated to support parameter sensitivity analysis
 """
 
 import os
@@ -93,8 +94,18 @@ class GNNTrainer:
     
     def train(self, hetero_data, num_epochs=NUM_EPOCHS, learning_rate=LEARNING_RATE,
               weight_decay=WEIGHT_DECAY, patience=PATIENCE, batch_size=BATCH_SIZE,
-              use_pu_loss=True, verbose=True):
+              use_pu_loss=True, verbose=True, return_training_curves=False):
         """Full training pipeline"""
+        
+        # Initialize training curves tracking
+        training_curves = {
+            'train_loss': [],
+            'train_adj_f1': [],
+            'val_adj_f1': [],
+            'val_auc': [],
+            'learning_rate': [],
+            'epoch': []
+        } if return_training_curves else None
         
         # Create data loaders
         num_neighbors = NEIGHBOR_SAMPLING[:self.model.num_layers]
@@ -159,15 +170,33 @@ class GNNTrainer:
             # Train
             train_loss = self.train_epoch(train_loader, optimizer, criterion)
             
+            # Get current learning rate
+            current_lr = optimizer.param_groups[0]['lr']
+            
+            # Evaluate training performance (for tracking curves)
+            train_metrics = None
+            if return_training_curves:
+                train_metrics = self.evaluate(train_loader)
+                train_adj_f1 = train_metrics.get('adjusted_f1', 0)
+                if np.isnan(train_adj_f1):
+                    train_adj_f1 = 0
+            
             # Validate if we have validation data
+            val_metrics = None
+            val_adjusted_f1 = 0
+            val_auc = 0
+            
             if has_val:
                 val_metrics = self.evaluate(val_loader)
                 val_adjusted_f1 = val_metrics.get('adjusted_f1', 0)
+                val_auc = val_metrics.get('roc_auc', 0)
+                
                 if np.isnan(val_adjusted_f1):
                     val_adjusted_f1 = 0
+                if np.isnan(val_auc):
+                    val_auc = 0
                 
                 # Update learning rate
-                current_lr = optimizer.param_groups[0]['lr']
                 scheduler.step(val_adjusted_f1)
                 
                 # Check for improvement
@@ -181,15 +210,10 @@ class GNNTrainer:
                 
                 # Print progress
                 if verbose and (epoch % 10 == 0 or epoch == 1 or patience_counter == 0):
-                    val_auc = val_metrics.get('roc_auc', 0)
-                    if np.isnan(val_auc):
-                        val_auc = 0
                     print(f"{epoch:<6} | {train_loss:<11.4f} | {val_adjusted_f1:<11.4f} | "
                           f"{val_auc:<9.4f} | {current_lr:<10.2e}")
             else:
                 # No validation data (inference mode)
-                current_lr = optimizer.param_groups[0]['lr']
-                
                 # Save best model based on training loss
                 if epoch == 1 or train_loss < best_val_metric or best_val_metric < 0:
                     best_val_metric = -train_loss  # Use negative loss as metric
@@ -199,6 +223,15 @@ class GNNTrainer:
                 # Print progress
                 if verbose and (epoch % 10 == 0 or epoch == 1):
                     print(f"{epoch:<6} | {train_loss:<11.4f} | {current_lr:<10.2e}")
+            
+            # Record training curves
+            if return_training_curves:
+                training_curves['epoch'].append(epoch)
+                training_curves['train_loss'].append(train_loss)
+                training_curves['train_adj_f1'].append(train_adj_f1 if train_metrics else 0)
+                training_curves['val_adj_f1'].append(val_adjusted_f1)
+                training_curves['val_auc'].append(val_auc)
+                training_curves['learning_rate'].append(current_lr)
             
             # Early stopping (only if we have validation data)
             if has_val and patience_counter >= patience:
@@ -214,7 +247,8 @@ class GNNTrainer:
         results = {
             'train': self.evaluate(train_loader),
             'best_epoch': best_epoch,
-            'best_val_metric': best_val_metric
+            'best_val_metric': best_val_metric,
+            'total_epochs': epoch
         }
         
         if has_val:
@@ -222,6 +256,10 @@ class GNNTrainer:
         
         if has_test:
             results['test'] = self.evaluate(test_loader)
+            
+        # Add training curves to results if requested
+        if return_training_curves:
+            results['training_curves'] = training_curves
         
         if verbose:
             print(f"\nFinal evaluation (best model from epoch {best_epoch}):")
@@ -288,3 +326,45 @@ class GNNTrainer:
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.best_model_state = checkpoint.get('best_model_state')
         print(f"Checkpoint loaded from {filepath}")
+        
+    def get_parameter_count(self):
+        """Get detailed parameter count information"""
+        total_params = sum(p.numel() for p in self.model.parameters())
+        trainable_params = sum(p.numel() for p in self.model.parameters() if p.requires_grad)
+        
+        # Parameter breakdown by layer type
+        param_breakdown = {}
+        for name, module in self.model.named_modules():
+            if len(list(module.children())) == 0:  # Leaf modules only
+                module_params = sum(p.numel() for p in module.parameters())
+                if module_params > 0:
+                    param_breakdown[name] = module_params
+        
+        return {
+            'total_parameters': total_params,
+            'trainable_parameters': trainable_params,
+            'parameter_breakdown': param_breakdown
+        }
+    
+    def get_model_info(self):
+        """Get comprehensive model information for analysis"""
+        param_info = self.get_parameter_count()
+        
+        model_info = {
+            'model_class': self.model.__class__.__name__,
+            'device': str(self.device),
+            'parameter_info': param_info,
+            'model_config': {}
+        }
+        
+        # Try to extract model configuration
+        if hasattr(self.model, 'hidden_channels'):
+            model_info['model_config']['hidden_channels'] = self.model.hidden_channels
+        if hasattr(self.model, 'num_layers'):
+            model_info['model_config']['num_layers'] = self.model.num_layers
+        if hasattr(self.model, 'heads'):
+            model_info['model_config']['heads'] = self.model.heads
+        if hasattr(self.model, 'dropout'):
+            model_info['model_config']['dropout'] = self.model.dropout
+        
+        return model_info
