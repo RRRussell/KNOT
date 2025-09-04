@@ -63,18 +63,70 @@ python main.py --task cancer_druggability --mode inference --feature-config depm
 
 Ten biologically motivated tasks across evidence levels, clinical relevance, and drug modalities.
 
-| Category | Task | Task ID | Description |
-|----------|------|---------|-------------|
-| **Pharos (Disease-agnostic)** | Tclin vs Others | `tclin_vs_others` | FDA-approved targets vs others |
-| | Strong Evidence | `tclin_tchem_vs_others` | Tclin+Tchem vs Tbio+Tdark |
-| **Triage (Disease-agnostic)** | High Confidence | `tier1_vs_others` | Tier1 vs others |
-| | Known Druggable | `tier12_vs_others` | Tier1+2 vs others |
-| **Domain-specific** | Cancer Druggability | `cancer_druggability` | Cancer-specific targets |
-| **Antibody Modality** | AB Top Targets | `ab_bucket1_vs_others` | Antibody bucket1 vs others |
-| | AB Druggable | `ab_bucket123_vs_others` | Antibody buckets1-3 vs others |
-| **Small Molecule** | SM Top Targets | `sm_bucket1_vs_others` | Small molecule bucket1 vs others |
-| | SM Druggable | `sm_bucket123_vs_others` | Small molecule buckets1-3 vs others |
-| **PROTAC** | PROTAC Targets | `protac_bucket1234_vs_others` | PROTAC buckets1-4 vs others |
+<table>
+  <tr>
+    <th>Category</th>
+    <th>Task</th>
+    <th>Task ID</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td rowspan="2" align="center"><b>Pharos (Disease-agnostic)</b></td>
+    <td>Tclin vs Others</td>
+    <td><code>tclin_vs_others</code></td>
+    <td>FDA-approved targets vs others</td>
+  </tr>
+  <tr>
+    <td>Strong Evidence</td>
+    <td><code>tclin_tchem_vs_others</code></td>
+    <td>Tclin+Tchem vs Tbio+Tdark</td>
+  </tr>
+  <tr>
+    <td rowspan="2" align="center"><b>Triage (Disease-agnostic)</b></td>
+    <td>High Confidence</td>
+    <td><code>tier1_vs_others</code></td>
+    <td>Tier1 vs others</td>
+  </tr>
+  <tr>
+    <td>Known Druggable</td>
+    <td><code>tier12_vs_others</code></td>
+    <td>Tier1+2 vs others</td>
+  </tr>
+  <tr>
+    <td align="center"><b>Domain-specific</b></td>
+    <td>Cancer Druggability</td>
+    <td><code>cancer_druggability</code></td>
+    <td>Cancer-specific targets</td>
+  </tr>
+  <tr>
+    <td rowspan="2" align="center"><b>Antibody Modality</b></td>
+    <td>AB Top Targets</td>
+    <td><code>ab_bucket1_vs_others</code></td>
+    <td>Antibody bucket1 vs others</td>
+  </tr>
+  <tr>
+    <td>AB Druggable</td>
+    <td><code>ab_bucket123_vs_others</code></td>
+    <td>Antibody buckets1-3 vs others</td>
+  </tr>
+  <tr>
+    <td rowspan="2" align="center"><b>Small Molecule</b></td>
+    <td>SM Top Targets</td>
+    <td><code>sm_bucket1_vs_others</code></td>
+    <td>Small molecule bucket1 vs others</td>
+  </tr>
+  <tr>
+    <td>SM Druggable</td>
+    <td><code>sm_bucket123_vs_others</code></td>
+    <td>Small molecule buckets1-3 vs others</td>
+  </tr>
+  <tr>
+    <td align="center"><b>PROTAC</b></td>
+    <td>PROTAC Targets</td>
+    <td><code>protac_bucket1234_vs_others</code></td>
+    <td>PROTAC buckets1-4 vs others</td>
+  </tr>
+</table>
 
 ## Feature Configurations
 
