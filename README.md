@@ -1,5 +1,7 @@
 # KNOT: Knowledge Graph and Omics Integration Framework for Target Identification
 
+![Flowchart](./KNOT_Flowchart.png)
+
 A Graph Neural Network (GNN) framework that combines positive-unlabeled learning with heterogeneous graph networks for gene druggability prediction.
 
 ## Installation
