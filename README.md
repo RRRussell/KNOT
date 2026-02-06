@@ -61,7 +61,12 @@ python main.py --task cancer_druggability --mode inference --feature-config depm
 
 ## Tasks
 
-Ten biologically motivated tasks across evidence levels, clinical relevance, and drug modalities.
+KNOT evaluates **15 biologically grounded target identification tasks** spanning  
+(i) evidence strength,  
+(ii) disease scope, and  
+(iii) drug modality.
+
+All tasks are formulated as **binary positive–unlabeled (PU) learning problems** at the gene level.
 
 <table>
   <tr>
@@ -70,61 +75,92 @@ Ten biologically motivated tasks across evidence levels, clinical relevance, and
     <th>Task ID</th>
     <th>Description</th>
   </tr>
+
+  <!-- PHAROS -->
   <tr>
-    <td rowspan="2" align="center"><b>Pharos (Disease-agnostic)</b></td>
-    <td>Tclin vs Others</td>
-    <td><code>tclin_vs_others</code></td>
-    <td>FDA-approved targets vs others</td>
+    <td rowspan="2" align="center"><b>PHAROS<br/>(Disease-agnostic)</b></td>
+    <td>Clinical Targets (Tclin)</td>
+    <td><code>pharos_tclin_vs_others</code></td>
+    <td>FDA-approved clinically validated drug targets</td>
   </tr>
   <tr>
-    <td>Strong Evidence</td>
-    <td><code>tclin_tchem_vs_others</code></td>
-    <td>Tclin+Tchem vs Tbio+Tdark</td>
+    <td>Clinical & Chemical Targets</td>
+    <td><code>pharos_tclin_tchem_vs_others</code></td>
+    <td>Tclin or Tchem targets versus weak/no evidence</td>
+  </tr>
+
+  <!-- TRIAGE -->
+  <tr>
+    <td rowspan="2" align="center"><b>Triage Assessment<br/>(Disease-agnostic)</b></td>
+    <td>Top-Tier Targets</td>
+    <td><code>triage_tier1_vs_others</code></td>
+    <td>Highest-confidence druggable targets (Tier 1)</td>
   </tr>
   <tr>
-    <td rowspan="2" align="center"><b>Triage (Disease-agnostic)</b></td>
-    <td>High Confidence</td>
-    <td><code>tier1_vs_others</code></td>
-    <td>Tier1 vs others</td>
+    <td>High-Confidence Targets</td>
+    <td><code>triage_tier12_vs_others</code></td>
+    <td>Known druggable targets (Tier 1–2)</td>
+  </tr>
+
+  <!-- CANCER -->
+  <tr>
+    <td rowspan="6" align="center"><b>Cancer Druggability<br/>(Domain-specific)</b></td>
+    <td>Cancer-Relevant Targets</td>
+    <td><code>cancer_relevant_targets</code></td>
+    <td>Curated targets relevant to cancer biology</td>
   </tr>
   <tr>
-    <td>Known Druggable</td>
-    <td><code>tier12_vs_others</code></td>
-    <td>Tier1+2 vs others</td>
+    <td>Cancer-Type-Specific Targets</td>
+    <td><code>cancer_type_specific_targets</code></td>
+    <td>Targets specific to individual cancer types</td>
   </tr>
   <tr>
-    <td align="center"><b>Domain-specific</b></td>
-    <td>Cancer Druggability</td>
-    <td><code>cancer_druggability</code></td>
-    <td>Cancer-specific targets</td>
+    <td>Pan-Cancer Targets</td>
+    <td><code>pan_cancer_targets</code></td>
+    <td>Targets recurrent across multiple cancer types</td>
   </tr>
   <tr>
-    <td rowspan="2" align="center"><b>Antibody Modality</b></td>
-    <td>AB Top Targets</td>
-    <td><code>ab_bucket1_vs_others</code></td>
-    <td>Antibody bucket1 vs others</td>
+    <td>Tier 1 Cancer Targets</td>
+    <td><code>pan_cancer_T1_targets</code></td>
+    <td>Approved cancer drug targets</td>
   </tr>
   <tr>
-    <td>AB Druggable</td>
-    <td><code>ab_bucket123_vs_others</code></td>
-    <td>Antibody buckets1-3 vs others</td>
+    <td>Tier 1–2 Cancer Targets</td>
+    <td><code>pan_cancer_T12_targets</code></td>
+    <td>Approved or repurposed cancer targets</td>
   </tr>
   <tr>
-    <td rowspan="2" align="center"><b>Small Molecule</b></td>
-    <td>SM Top Targets</td>
+    <td>Tier 1–3 Cancer Targets</td>
+    <td><code>pan_cancer_T123_targets</code></td>
+    <td>Approved or investigational cancer targets</td>
+  </tr>
+
+  <!-- MODALITY -->
+  <tr>
+    <td rowspan="5" align="center"><b>Drug Modality<br/>(Domain-specific)</b></td>
+    <td>Small Molecule Targets (Approved)</td>
     <td><code>sm_bucket1_vs_others</code></td>
-    <td>Small molecule bucket1 vs others</td>
+    <td>Targets of approved small-molecule drugs</td>
   </tr>
   <tr>
-    <td>SM Druggable</td>
+    <td>Small Molecule Targets (Clinical+)</td>
     <td><code>sm_bucket123_vs_others</code></td>
-    <td>Small molecule buckets1-3 vs others</td>
+    <td>Approved or clinical-stage small-molecule targets</td>
   </tr>
   <tr>
-    <td align="center"><b>PROTAC</b></td>
+    <td>Antibody Targets (Approved)</td>
+    <td><code>ab_bucket1_vs_others</code></td>
+    <td>Targets of approved antibody therapeutics</td>
+  </tr>
+  <tr>
+    <td>Antibody Targets (Clinical+)</td>
+    <td><code>ab_bucket123_vs_others</code></td>
+    <td>Approved or clinical-stage antibody targets</td>
+  </tr>
+  <tr>
     <td>PROTAC Targets</td>
     <td><code>protac_bucket1234_vs_others</code></td>
-    <td>PROTAC buckets1-4 vs others</td>
+    <td>Targets supported by literature-curated PROTAC evidence</td>
   </tr>
 </table>
 
