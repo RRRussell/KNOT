@@ -436,7 +436,7 @@ TEST_SIZE = 0.2
 VAL_SIZE = 0.1
 
 # Graph construction
-MAX_NEIGHBORS_PER_NODE = 10
+MAX_NEIGHBORS_PER_NODE = 5
 NEIGHBOR_SAMPLING = [25, 20, 15]  # For each layer
 
 # Edge type configurations
