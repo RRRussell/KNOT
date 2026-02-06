@@ -12,7 +12,7 @@ from pathlib import Path
 # ===============================================================================
 
 # Data paths
-DATA_DIR = Path('/home/zihend1/Genesis/KNOT_v0/data')
+DATA_DIR = Path('/home/zihend1/Genesis/Data/TargetIdentification/data')
 FEATURES_FILE = DATA_DIR / 'gene_features.tsv'
 LABELS_FILE = DATA_DIR / 'gene_labels.tsv'
 OUTPUT_DIR = Path('./results')
@@ -279,79 +279,124 @@ FEATURE_CONFIGS = {
 # ===============================================================================
 
 DRUGGABILITY_TASKS = {
-    # Pharos-based tasks
-    'tclin_vs_others': {
+
+    # ============================================================
+    # PHAROS-based tasks (Disease-agnostic)
+    # ============================================================
+    'pharos_tclin_vs_others': {
         'label_col': 'task_pharos_tclin_vs_others',
-        'display_name': 'Tclin vs Others (Approved Targets)',
-        'description': 'Identify FDA-approved drug targets (Tclin)',
+        'display_name': 'Clinical Targets (Tclin)',
+        'description': 'Identify clinically validated FDA-approved drug targets (Tclin) versus all other genes',
         'task_type': 'binary'
     },
-    'tclin_tchem_vs_others': {
+
+    'pharos_tclin_tchem_vs_others': {
         'label_col': 'task_pharos_tclin_tchem_vs_others',
-        'display_name': 'Tclin+Tchem vs Others (Strong Evidence)',
-        'description': 'Distinguish strong evidence (Tclin+Tchem) vs weak evidence',
+        'display_name': 'Clinical & Chemical Targets (Tclin+Tchem)',
+        'description': 'Identify targets with clinical or strong chemical evidence (Tclin or Tchem) versus others',
         'task_type': 'binary'
     },
-    
-    # Triage-based tasks
-    'tier1_vs_others': {
+
+    # ============================================================
+    # Triage assessment tasks (Disease-agnostic)
+    # ============================================================
+    'triage_tier1_vs_others': {
         'label_col': 'task_triage_tier1_vs_others',
-        'display_name': 'Tier1 vs Others (High Confidence)',
-        'description': 'Identify highest confidence druggable targets',
+        'display_name': 'Top-Tier Targets (Tier 1)',
+        'description': 'Identify highest-confidence druggable targets assessed as Tier 1',
         'task_type': 'binary'
     },
-    'tier12_vs_others': {
+
+    'triage_tier12_vs_others': {
         'label_col': 'task_triage_tier12_vs_others',
-        'display_name': 'Tier1+2 vs Others (Known Druggable)',
-        'description': 'Identify known druggable targets (Tier1+2)',
+        'display_name': 'High-Confidence Targets (Tier 1–2)',
+        'description': 'Identify high-confidence druggable targets assessed as Tier 1 or Tier 2',
         'task_type': 'binary'
     },
-    
-    # Domain-specific tasks
-    'cancer_druggability': {
+
+    # ============================================================
+    # Cancer druggability tasks (Domain-specific)
+    # ============================================================
+    'cancer_relevant_targets': {
         'label_col': 'task_cancer_druggability',
-        'display_name': 'Cancer Druggability',
-        'description': 'Predict cancer-specific druggability',
+        'display_name': 'Cancer-Relevant Targets',
+        'description': 'Predict druggable targets curated as relevant to cancer biology',
         'task_type': 'binary'
     },
-    
-    # Antibody modality tasks
-    'ab_bucket1_vs_others': {
-        'label_col': 'task_ab_bucket1_vs_others',
-        'display_name': 'AB Bucket1 vs Others',
-        'description': 'Top antibody targets vs others',
+
+    'cancer_type_specific_targets': {
+        'label_col': 'task_cancer_type_specific_target_prioritization',
+        'display_name': 'Cancer-Type-Specific Targets',
+        'description': 'Predict druggable targets specific to individual cancer types',
         'task_type': 'binary'
     },
-    'ab_bucket123_vs_others': {
-        'label_col': 'task_ab_bucket123_vs_others',
-        'display_name': 'AB Bucket1-3 vs Others',
-        'description': 'Antibody druggable targets (Bucket1-3)',
+
+    'pan_cancer_targets': {
+        'label_col': 'task_pan_cancer_target_prioritization',
+        'display_name': 'Pan-Cancer Targets',
+        'description': 'Predict druggable targets recurrently implicated across multiple cancer types',
         'task_type': 'binary'
     },
-    
-    # Small molecule modality tasks
+
+    'pan_cancer_T1_targets': {
+        'label_col': 'task_T1_targets_only',
+        'display_name': 'Tier 1 Cancer Targets',
+        'description': 'Identify cancer drug targets with approved therapeutic evidence (Tier 1)',
+        'task_type': 'binary'
+    },
+
+    'pan_cancer_T12_targets': {
+        'label_col': 'task_T1_T2_targets',
+        'display_name': 'Tier 1–2 Cancer Targets',
+        'description': 'Identify approved or repurposed cancer drug targets (Tier 1–2)',
+        'task_type': 'binary'
+    },
+
+    'pan_cancer_T123_targets': {
+        'label_col': 'task_T1_T2_T3_targets',
+        'display_name': 'Tier 1–3 Cancer Targets',
+        'description': 'Identify approved or investigational cancer drug targets (Tier 1–3)',
+        'task_type': 'binary'
+    },
+
+    # ============================================================
+    # Drug modality-specific tasks (Domain-specific)
+    # ============================================================
     'sm_bucket1_vs_others': {
         'label_col': 'task_sm_bucket1_vs_others',
-        'display_name': 'SM Bucket1 vs Others',
-        'description': 'Top small molecule targets vs others',
+        'display_name': 'Small Molecule Targets (Bucket 1)',
+        'description': 'Identify targets of approved small-molecule drugs (SM Bucket 1)',
         'task_type': 'binary'
     },
+
     'sm_bucket123_vs_others': {
         'label_col': 'task_sm_bucket123_vs_others',
-        'display_name': 'SM Bucket1-3 vs Others',
-        'description': 'Small molecule druggable targets (Bucket1-3)',
+        'display_name': 'Small Molecule Targets (Bucket 1–3)',
+        'description': 'Identify targets of approved or clinical-stage small-molecule drugs (SM Bucket 1–3)',
         'task_type': 'binary'
     },
-    
-    # PROTAC modality task
+
+    'ab_bucket1_vs_others': {
+        'label_col': 'task_ab_bucket1_vs_others',
+        'display_name': 'Antibody Targets (Bucket 1)',
+        'description': 'Identify targets of approved antibody therapeutics (AB Bucket 1)',
+        'task_type': 'binary'
+    },
+
+    'ab_bucket123_vs_others': {
+        'label_col': 'task_ab_bucket123_vs_others',
+        'display_name': 'Antibody Targets (Bucket 1–3)',
+        'description': 'Identify targets of approved or clinical-stage antibody therapeutics (AB Bucket 1–3)',
+        'task_type': 'binary'
+    },
+
     'protac_bucket1234_vs_others': {
         'label_col': 'task_protac_bucket1234_vs_others',
-        'display_name': 'PROTAC Bucket1-4 vs Others',
-        'description': 'PROTAC druggable targets (Bucket1-4)',
+        'display_name': 'PROTAC Targets (Bucket 1–4)',
+        'description': 'Identify targets supported by literature-curated PROTAC evidence (Bucket 1–4)',
         'task_type': 'binary'
     }
 }
-
 # Task order for display
 TASK_ORDER = [
     'tclin_vs_others',
