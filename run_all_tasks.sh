@@ -34,16 +34,28 @@ timestamp() {
 
 # Define all tasks
 TASKS=(
-    "strong_vs_weak_evidence"
-    "approved_targets"
-    "known_druggable"
-    "high_confidence"
-    "cancer_druggability"
-    "sm_target"
-    "sm_cancer"
-    "ab_target"
-    "ab_cancer"
-    "protac"
+  # PHAROS (Disease-agnostic)
+  "pharos_tclin_vs_others"
+  "pharos_tclin_tchem_vs_others"
+
+  # Triage (Disease-agnostic)
+  "triage_tier1_vs_others"
+  "triage_tier12_vs_others"
+
+  # Cancer (Domain-specific)
+  "cancer_relevant_targets"
+  "cancer_type_specific_targets"
+  "pan_cancer_targets"
+  "pan_cancer_T1_targets"
+  "pan_cancer_T12_targets"
+  "pan_cancer_T123_targets"
+
+  # Drug modality (Domain-specific)
+  "sm_bucket1_vs_others"
+  "sm_bucket123_vs_others"
+  "ab_bucket1_vs_others"
+  "ab_bucket123_vs_others"
+  "protac_bucket1234_vs_others"
 )
 
 # Main log file
@@ -54,7 +66,7 @@ main_log="$log_dir/all_tasks_${ts}.log"
     echo "KNOT GNN - ALL TASKS EXECUTION"
     echo "=========================================="
     echo "Job started on $(hostname) at $(date '+%Y-%m-%d %H:%M:%S')"
-    echo "Running 10 tasks in both evaluation and inference modes"
+    echo "Running ${#TASKS[@]} tasks in both evaluation and inference modes"
     echo ""
     
     # ============================================
@@ -71,7 +83,7 @@ main_log="$log_dir/all_tasks_${ts}.log"
         
         echo ""
         echo "----------------------------------------"
-        echo "[$task_num/10] Running EVALUATION for: $task"
+        echo "[$task_num/${#TASKS[@]}] Running EVALUATION for: $task"
         echo "----------------------------------------"
         
         python main.py \
@@ -110,7 +122,7 @@ main_log="$log_dir/all_tasks_${ts}.log"
         
         echo ""
         echo "----------------------------------------"
-        echo "[$task_num/10] Running INFERENCE for: $task"
+        echo "[$task_num/${#TASKS[@]}] Running INFERENCE for: $task"
         echo "----------------------------------------"
         
         python main.py \
