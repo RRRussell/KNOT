@@ -18,6 +18,85 @@ from config import *
 from models import MultiTaskHGT, PULoss
 from utils import calculate_metrics, print_metrics
 
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+@torch.no_grad()
+def _get_train_node_features(hetero_data, device):
+    # Use gene node features for prior estimation (no graph needed)
+    x = hetero_data['gene'].x
+    train_mask = hetero_data['gene'].train_mask
+    y = hetero_data['gene'].y
+    return x[train_mask].to(device), y[train_mask].to(device)
+
+class _PUPropensityMLP(nn.Module):
+    """Aux classifier for P vs U: outputs P(labeled=1 | x)."""
+    def __init__(self, in_dim, hidden=256, dropout=0.2):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(in_dim, hidden),
+            nn.ReLU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden, 1)
+        )
+    def forward(self, x):
+        return self.net(x).squeeze(-1)  # logits
+
+def estimate_pu_prior_elkan_noto(hetero_data, device, epochs=20, lr=1e-3, batch_size=2048, seed=42):
+    """
+    Estimate class prior pi = P(y=1) from PU data using Elkan-Noto.
+
+    Assumptions:
+      - train y=1 are labeled positives (P)
+      - train y=0 are unlabeled (U)
+    """
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+
+    x_train, y_train = _get_train_node_features(hetero_data, device)
+    # labeled indicator s: P nodes are 1, U nodes are 0
+    s_train = (y_train == 1).float()
+
+    in_dim = x_train.size(-1)
+    clf = _PUPropensityMLP(in_dim=in_dim).to(device)
+    opt = torch.optim.AdamW(clf.parameters(), lr=lr, weight_decay=1e-4)
+
+    # simple class imbalance handling for P vs U
+    n_pos = int((s_train == 1).sum().item())
+    n_unl = int((s_train == 0).sum().item())
+    # avoid div by zero
+    pos_weight = torch.tensor([max(n_unl / max(n_pos, 1), 1.0)], device=device)
+
+    clf.train()
+    idx = torch.arange(x_train.size(0), device=device)
+
+    for _ in range(epochs):
+        perm = idx[torch.randperm(idx.numel())]
+        for start in range(0, perm.numel(), batch_size):
+            b = perm[start:start+batch_size]
+            logits = clf(x_train[b])
+            loss = F.binary_cross_entropy_with_logits(logits, s_train[b], pos_weight=pos_weight)
+            opt.zero_grad()
+            loss.backward()
+            opt.step()
+
+    clf.eval()
+    # s_hat(x) = P(labeled=1 | x)
+    s_hat = torch.sigmoid(clf(x_train))
+
+    # c ≈ E_{x~P} s_hat(x)
+    pos_mask = (s_train == 1)
+    if pos_mask.sum().item() == 0:
+        # fallback: cannot estimate; return small prior
+        return 0.01
+    c = s_hat[pos_mask].mean().clamp(min=1e-6, max=1.0)
+
+    # pi ≈ E_{x~train} s_hat(x)/c
+    pi = (s_hat / c).mean().clamp(min=1e-6, max=1.0)
+
+    return float(pi.item())
 
 class GNNTrainer:
     """Trainer for GNN models"""
@@ -137,17 +216,25 @@ class GNNTrainer:
         
         # Setup loss function
         train_labels = hetero_data['gene'].y[hetero_data['gene'].train_mask].cpu().numpy()
+
         if use_pu_loss and len(np.unique(train_labels)) > 1:
-            class_counts = np.bincount(train_labels)
-            prior = float(class_counts[1]) / float(class_counts[0] + class_counts[1])
+            # Estimate PU prior pi instead of naive labeled fraction
+            prior = estimate_pu_prior_elkan_noto(
+                hetero_data,
+                device=self.device,
+                epochs=20,
+                lr=1e-3,
+                batch_size=2048,
+                seed=42
+            )
             criterion = PULoss(prior=prior, nnpu=True).to(self.device)
             if verbose:
-                print(f"Using PU Loss with prior={prior:.4f}")
+                print(f"Using PU Loss with estimated prior(pi)={prior:.4f} (Elkan-Noto)")
         else:
             criterion = nn.CrossEntropyLoss().to(self.device)
             if verbose:
                 print("Using CrossEntropy Loss")
-        
+                
         # Setup optimizer and scheduler
         optimizer = AdamW(self.model.parameters(), lr=learning_rate, weight_decay=weight_decay)
         scheduler = ReduceLROnPlateau(optimizer, mode='max', patience=10, factor=0.5)
