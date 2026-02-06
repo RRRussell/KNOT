@@ -243,7 +243,7 @@ python main.py --task cancer_relevant_targets --mode inference --feature-config 
 ## File Structure
 
 ```
-KNOT_v0/
+KNOT/
 ├── main.py              # Main training script
 ├── config.py            # Configuration settings
 ├── data_loader.py       # Data loading and preprocessing  
