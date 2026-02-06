@@ -40,23 +40,23 @@ data/
 
 ```bash
 # Default task with all features
-python main.py --task tier12_vs_others --mode evaluation
+python main.py --task triage_tier12_vs_others --mode evaluation
 
 # Use only DepMap features
-python main.py --task tier12_vs_others --mode evaluation --feature-config depmap_only
+python main.py --task triage_tier12_vs_others --mode evaluation --feature-config depmap_only
 
 # Specific task with custom settings
-python main.py --task tclin_vs_others --mode evaluation --epochs 100 --edge-config ppi_only
+python main.py --task triage_tier12_vs_others --mode evaluation --epochs 100 --edge-config ppi_only
 ```
 
 ### Inference Mode (Rank All Genes)
 
 ```bash
 # Generate gene rankings
-python main.py --task tier12_vs_others --mode inference
+python main.py --task triage_tier12_vs_others --mode inference
 
 # Custom configuration
-python main.py --task cancer_druggability --mode inference --feature-config depmap_plus_pharos --epochs 200
+python main.py --task cancer_relevant_targets --mode inference --feature-config depmap_plus_pharos --epochs 200
 ```
 
 ## Tasks
@@ -206,7 +206,7 @@ All tasks are formulated as **binary positive–unlabeled (PU) learning problems
 
 ## Key Parameters
 
-- `--task`: Druggability task (default: tier12_vs_others)
+- `--task`: Druggability task (default: triage_tier12_vs_others)
 - `--mode`: evaluation or inference (default: evaluation)
 - `--feature-config`: Feature configuration (default: all_features)
 - `--edge-config`: Edge type configuration (default: all)
@@ -228,15 +228,15 @@ All tasks are formulated as **binary positive–unlabeled (PU) learning problems
 
 ```bash
 # Compare DepMap-only vs all features for known druggable prediction
-python main.py --task tier12_vs_others --feature-config depmap_only --mode evaluation
-python main.py --task tier12_vs_others --feature-config all_features --mode evaluation
+python main.py --task triage_tier12_vs_others --feature-config depmap_only --mode evaluation
+python main.py --task triage_tier12_vs_others --feature-config all_features --mode evaluation
 
 # Test different network configurations  
-python main.py --task tclin_vs_others --edge-config regulatory --mode evaluation
-python main.py --task tclin_vs_others --edge-config functional --mode evaluation
+python main.py --task pharos_tclin_vs_others --edge-config regulatory --mode evaluation
+python main.py --task pharos_tclin_vs_others --edge-config functional --mode evaluation
 
 # Generate rankings for cancer targets
-python main.py --task cancer_druggability --mode inference --feature-config depmap_plus_pharos
+python main.py --task cancer_relevant_targets --mode inference --feature-config depmap_plus_pharos
 
 ```
 

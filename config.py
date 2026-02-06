@@ -453,5 +453,5 @@ EDGE_CONFIGS = {
 # Default configuration
 DEFAULT_EDGE_CONFIG = 'all'
 DEFAULT_FEATURE_CONFIG = 'all_features'
-DEFAULT_TASK = 'tier12_vs_others'
+DEFAULT_TASK = 'triage_tier12_vs_others'
 DEFAULT_SEED = 42
